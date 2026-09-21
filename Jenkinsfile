@@ -23,9 +23,12 @@ pipeline {
             }
         }
 
-        stage('Check Dist') {
+        stage('Upload Frontend') {
             steps {
-                sh 'ls -lah dist'
+                uploadFrontend(
+                    distDir: 'dist',
+                    repository: 'key'
+                )
             }
         }
     }
