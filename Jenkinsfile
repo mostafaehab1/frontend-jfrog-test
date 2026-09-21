@@ -1,3 +1,5 @@
+@Library('jfrog-shared-lib@main') _
+
 pipeline {
     agent any
 
