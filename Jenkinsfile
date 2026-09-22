@@ -18,17 +18,18 @@ pipeline {
         }
 
         stage('Build Frontend') {
-        
-	when {
-		tag"v*"
-		}
-   
-	 steps {
+            when {
+                tag pattern: 'v*'
+            }
+            steps {
                 sh 'npm run build'
             }
         }
 
         stage('Upload Frontend') {
+            when {
+                tag pattern: 'v*'
+            }
             steps {
                 uploadFrontend(
                     distDir: 'dist',
