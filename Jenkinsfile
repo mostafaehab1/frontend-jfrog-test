@@ -18,7 +18,12 @@ pipeline {
         }
 
         stage('Build Frontend') {
-            steps {
+        
+	when {
+		tag"v*"
+		}
+   
+	 steps {
                 sh 'npm run build'
             }
         }
