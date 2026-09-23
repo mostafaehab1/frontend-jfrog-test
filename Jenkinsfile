@@ -1,4 +1,4 @@
-@Library('jen-shared-lib@main') _
+@Library('jfrog-shared-lib@main') _
 
 pipeline {
     agent any
@@ -18,19 +18,18 @@ pipeline {
 
                     def lastReleaseTag = sh(
                         script: '''
-                            git tag --list 'v*.*.*' --sort=-version:refname | head -n 1
+                            git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | head -n 1
                         ''',
                         returnStdout: true
                     ).trim()
 
                     if (!lastReleaseTag) {
-                        error 'No release tag found. Create an initial vX.Y.Z release tag first.'
+                        error 'No release tag found.'
                     }
 
                     RELEASE = lastReleaseTag
 
-                    echo "Last release tag: ${lastReleaseTag}"
-                    echo "Current release: ${RELEASE}"
+                    echo "Last release tag: ${RELEASE}"
                 }
             }
         }
