@@ -1,4 +1,5 @@
-@Library('jfrog-shared-lib@main') _
+@Library('jen-shared-lib@main') _
+
 
 pipeline {
     agent any
@@ -11,6 +12,20 @@ pipeline {
             }
         }
 
+        stage('Read Release') {
+            steps {
+                script {
+                    RELEASE = readFile('RELEASE').trim()
+
+                    if (!RELEASE) {
+                        error 'RELEASE file is empty'
+                    }
+
+                    echo "Current release: ${RELEASE}"
+                }
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 sh 'npm ci'
@@ -18,22 +33,33 @@ pipeline {
         }
 
         stage('Build Frontend') {
-            when {
-                tag pattern: 'v*'
-            }
             steps {
                 sh 'npm run build'
             }
         }
 
-        stage('Upload Frontend') {
-            when {
-                tag pattern: 'v*'
+        stage('Generate Build ID') {
+            steps {
+                script {
+                    def timestamp = sh(
+                        script: 'date -u +%Y%m%d-%H%M%S',
+                        returnStdout: true
+                    ).trim()
+
+                    BUILD_ID = "${RELEASE}-${timestamp}-b${env.BUILD_NUMBER}"
+
+                    echo "Build ID: ${BUILD_ID}"
+                }
             }
+        }
+
+        stage('Upload Frontend') {
             steps {
                 uploadFrontend(
                     distDir: 'dist',
-                    repository: 'key'
+                    repository: 'key',
+                    release: RELEASE,
+                    buildId: BUILD_ID
                 )
             }
         }
