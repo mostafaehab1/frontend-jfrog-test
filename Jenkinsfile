@@ -5,12 +5,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Determine Release') {
             steps {
                 script {
@@ -29,7 +23,7 @@ pipeline {
 
                     RELEASE = lastReleaseTag
 
-                    echo "Last release tag: ${RELEASE}"
+                    echo "Current release: ${RELEASE}"
                 }
             }
         }
@@ -69,6 +63,27 @@ pipeline {
                     release: RELEASE,
                     buildId: BUILD_ID
                 )
+            }
+        }
+
+        stage('Create GitHub Build Tag') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'github-write',
+                        usernameVariable: 'GITHUB_USER',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )
+                ]) {
+                    sh """
+                        git config user.name "Jenkins"
+                        git config user.email "jenkins@localhost"
+
+                        git tag "build-${BUILD_ID}" "${GIT_COMMIT}"
+
+                        git push https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/mostafaehab1/frontend-jfrog-test.git "build-${BUILD_ID}"
+                    """
+                }
             }
         }
     }
