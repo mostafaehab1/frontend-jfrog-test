@@ -1,6 +1,5 @@
 @Library('jen-shared-lib@main') _
 
-
 pipeline {
     agent any
 
@@ -12,15 +11,25 @@ pipeline {
             }
         }
 
-        stage('Read Release') {
+        stage('Determine Release') {
             steps {
                 script {
-                    RELEASE = readFile('RELEASE').trim()
+                    sh 'git fetch --tags --force'
 
-                    if (!RELEASE) {
-                        error 'RELEASE file is empty'
+                    def lastReleaseTag = sh(
+                        script: '''
+                            git tag --list 'v*.*.*' --sort=-version:refname | head -n 1
+                        ''',
+                        returnStdout: true
+                    ).trim()
+
+                    if (!lastReleaseTag) {
+                        error 'No release tag found. Create an initial vX.Y.Z release tag first.'
                     }
 
+                    RELEASE = lastReleaseTag
+
+                    echo "Last release tag: ${lastReleaseTag}"
                     echo "Current release: ${RELEASE}"
                 }
             }
